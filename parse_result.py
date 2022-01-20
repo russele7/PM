@@ -22,7 +22,6 @@ from IPython.display import display
 
 # In[5]:
 
-
 import sys
 # appending a path
 sys.path.append(r'C:\Users\acer\Desktop\RUSLAN\PM')

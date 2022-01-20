@@ -37,7 +37,12 @@ def send_mail(subject, body):
 
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
-    server.login(message['From'], 'vmujqiiclzpfdlxu')
+
+    with open('psw.txt', 'r+') as file:
+        PASSWORD = file.read()
+        file.close()
+
+    server.login(message['From'], PASSWORD)
     server.sendmail(message['From'], message['To'], msg_body)
     server.quit()
 
