@@ -217,8 +217,8 @@ display(lag_parse_time)
 def fill_the_week(dpage, dlag, df_week_in):    
     df_slice = dpage.merge(dlag, how = 'left', on = ['HT', 'GT', 'TOURNAMENT'])
     df_slice['DELTA_SEC'] = (df_slice['OBSDT'] - df_slice['LAG_DT']).apply(lambda x: x.total_seconds())
-    print('df_slice BEFORE CUT [DELTA_SEC] < 2 minutes')
-    display(df_slice)    
+    # print('df_slice BEFORE CUT [DELTA_SEC] < 2 minutes')
+    # display(df_slice)    
     df_slice = df_slice[
         (df_slice['DELTA_SEC'] < 60*2.5)      # 60 * 2.5
         & (df_slice['DELTA_SEC'] >= 0)   # 0
@@ -303,20 +303,20 @@ for i in range(len(lag_parse_time)):
         print('df_int')
         display(df_int)
         
-        display(r"(df_week['DRC_3M'] >= 3.)")
-        display((df_week['DRC_3M'] >= 3.))
+        # display(r"(df_week['DRC_3M'] >= 3.)")
+        # display((df_week['DRC_3M'] >= 3.))
 
-        display(r"(abs(df_week['HWC_3M'] - df_week['GWC_3M']) <= 0.15)")
-        display((abs(df_week['HWC_3M'] - df_week['GWC_3M']) <= 0.15))
+        # display(r"(abs(df_week['HWC_3M'] - df_week['GWC_3M']) <= 0.15)")
+        # display((abs(df_week['HWC_3M'] - df_week['GWC_3M']) <= 0.15))
 
-        display(r"((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) <= 60*3)")
-        display(((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) <= 60*3))
+        # display(r"((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) <= 60*3)")
+        # display(((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) <= 60*3))
 
-        display(r"((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) == 60*3)")
-        display(((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) == 60*3))
+        # display(r"((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) == 60*3)")
+        # display(((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) == 60*3))
 
-        display(r"((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) > 0)")
-        display(((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) > 0))
+        # display(r"((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) > 0)")
+        # display(((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) > 0))
 
 
 
