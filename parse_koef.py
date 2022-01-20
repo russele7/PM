@@ -90,7 +90,7 @@ for elem in CHAMPS:
 
 
 data = pd.concat(data_champ_list).copy()
-print('parced data')
+print('\nPARSED DATA:\n')
 data.to_excel(f'data_parced.xlsx')
 display(data)
 
@@ -110,14 +110,14 @@ data['GAME_ID'] = data.index
 
 # In[13]:
 
-print('data daily')
+print('\nDATA DAILY\n')
 display(data[['GAME_DT', 'HT', 'GT', 'COUNTRY', 'TOURNAMENT', 'HW_COEF', 'DR_COEF', 'GW_COEF']])
 data.to_excel(f'data_daily.xlsx')
 
 # In[14]:
 
 if len(data) == 0:
-    print(f'TODAY IS NO GAMES _ {str(dt.today())}')
+    print(f'\nTODAY IS NO GAMES _ {str(dt.today())}\n')
     with open(f'report.txt', 'w') as f:
         f.write(f'TODAY IS NO GAMES _ {str(dt.today())}')
         f.close()
@@ -130,7 +130,7 @@ if len(data) == 0:
 data_interesting = data[(data['DR_COEF'] >= 3.) & (abs(data['HW_COEF'] - data['GW_COEF']) < 0.5 )][
     ['GAME_DT', 'HT', 'GT', 'COUNTRY', 'TOURNAMENT', 'HW_COEF', 'DR_COEF', 'GW_COEF']].copy()
 
-print('data interesting')
+print('\nDATA INTERESTING:\n')
 display(data_interesting)
 
 data_interesting.to_excel(f'data_interesting.xlsx')
@@ -152,7 +152,7 @@ for elem in lag_list:
 # In[27]:
 
 
-print('df_week')
+print('\ndf_week:\n')
 df_week.to_excel(f'df_week.xlsx')
 display(df_week)
 
@@ -189,7 +189,7 @@ df_lag = df_lag.melt(
 # In[33]:
 
 
-print('df_lag')
+print('\ndf_lag:\n')
 df_lag.to_excel('df_lag.xlsx')
 display(df_lag)
 
@@ -202,7 +202,7 @@ display(df_lag)
 lag_parse_time = df_lag.pivot_table(index = 'LAG_DT', columns = 'COUNTRY', values = 'HT', aggfunc = 'count').reset_index()
 lag_parse_time.rename_axis(None, axis=1, inplace = True)
 lag_parse_time.rename(columns = {'LAG_DT' : 'PARSE_DT'}, inplace = True)
-print('lag_parse_time')
+print('\nlag_parse_time:\n')
 lag_parse_time.to_excel('lag_parse_time.xlsx')
 display(lag_parse_time)
 
@@ -221,7 +221,7 @@ def fill_the_week(dpage, dlag, df_week_in):
         (df_slice['DELTA_SEC'] < 60*2.5)      # 60 * 2.5
         & (df_slice['DELTA_SEC'] >= 0)   # 0
     ].reset_index(drop = True)
-    print('df_slice AFTER CUT [DELTA_SEC] < 2 minutes')
+    print('\ndf_slice AFTER CUT [DELTA_SEC] < 2 minutes:\n')
     display(df_slice)
     # Заполняем weekly значениями из slice
     df_week_out = df_week_in.copy()
