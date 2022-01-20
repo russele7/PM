@@ -53,7 +53,6 @@ from classes_opt import *
 
 # In[6]:
 
-print('abra')
 CHAMPS = list(data_list.keys())
 display(CHAMPS)
 
@@ -217,8 +216,7 @@ display(lag_parse_time)
 def fill_the_week(dpage, dlag, df_week_in):    
     df_slice = dpage.merge(dlag, how = 'left', on = ['HT', 'GT', 'TOURNAMENT'])
     df_slice['DELTA_SEC'] = (df_slice['OBSDT'] - df_slice['LAG_DT']).apply(lambda x: x.total_seconds())
-    # print('df_slice BEFORE CUT [DELTA_SEC] < 2 minutes')
-    # display(df_slice)    
+     
     df_slice = df_slice[
         (df_slice['DELTA_SEC'] < 60*2.5)      # 60 * 2.5
         & (df_slice['DELTA_SEC'] >= 0)   # 0
@@ -261,20 +259,20 @@ for i in range(len(lag_parse_time)):
          # Делаем парсинг
         data_champ_list2 = []
         for elem in parse_list:
-        	try:
-	            page2 = sport_page(COUNTRY = elem, TOURNAMENT = data_list[elem][0])
-	            page2.download_webpage(URL = data_list[elem][1])
-	            data2 = page2.df_games    
-	            data2.reset_index(inplace = True)
-	            data2.rename(columns = {'index':'GAME_ID'}, inplace = True)
-	            data_champ_list2.append(data2)
-	        except:
-	        	aa = lag_parse_time.loc[i]['PARSE_DT']
-	        	print(f"ERROR with download <{elem}> / time = {aa}")
-	        	with open('errors.txt', 'a+') as file:
-	        		file.write(f"ERROR with download <{elem}> / time = {aa}")
-	        		file.close()
-	        	del aa
+            try:
+                page2 = sport_page(COUNTRY = elem, TOURNAMENT = data_list[elem][0])
+                page2.download_webpage(URL = data_list[elem][1])
+                data2 = page2.df_games
+                data2.reset_index(inplace = True)
+                data2.rename(columns = {'index':'GAME_ID'}, inplace = True)
+                data_champ_list2.append(data2)
+            except:
+                aa = lag_parse_time.loc[i]['PARSE_DT']
+                print(f"ERROR with download <{elem}> / time = {aa}")
+                with open('errors.txt', 'a+') as file:
+                    file.write(f"ERROR with download <{elem}> / time = {aa}")
+                    file.close()
+                del aa
 
         data2 = pd.concat(data_champ_list2).copy()
         data2 = data2.loc[data2['GAME_DT'] < END_DAY_TIME].copy()
@@ -302,23 +300,6 @@ for i in range(len(lag_parse_time)):
         df_int.to_excel(f'df_int.xlsx')
         print('df_int')
         display(df_int)
-        
-        # display(r"(df_week['DRC_3M'] >= 3.)")
-        # display((df_week['DRC_3M'] >= 3.))
-
-        # display(r"(abs(df_week['HWC_3M'] - df_week['GWC_3M']) <= 0.15)")
-        # display((abs(df_week['HWC_3M'] - df_week['GWC_3M']) <= 0.15))
-
-        # display(r"((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) <= 60*3)")
-        # display(((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) <= 60*3))
-
-        # display(r"((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) == 60*3)")
-        # display(((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) == 60*3))
-
-        # display(r"((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) > 0)")
-        # display(((df_week['GAME_DT'] - lag_parse_time.loc[i]['PARSE_DT']).apply(lambda x: x.total_seconds()) > 0))
-
-
 
         if (len(df_int) > 0):
             send_mail(subject = '_'.join(df_int['COUNTRY'].to_list()), body = df_int)
