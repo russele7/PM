@@ -3,7 +3,7 @@
 
 # In[4]:
 
-# HELLO WORLD!
+
 from selenium import webdriver
 from time import sleep, strftime
 import pause
