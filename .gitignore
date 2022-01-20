@@ -1,0 +1,13 @@
+__pycache__/
+data_daily.xlsx
+data_interesting.xlsx
+data_parced.xlsx
+df_lag.xlsx
+df_week.xlsx
+df_week_res.xlsx
+errors.txt
+lag_parse_time.xlsx
+parse_koef.ipynb
+parse_result.ipynb
+unknown_games.xlsx
+weekly_mail_sand.ipynb
