@@ -3,7 +3,8 @@
 
 # In[4]:
 
-# NEW CHANGE FOR BRANCH FEATURE
+# MAKE CHANGE FOR NEW BRANCH
+# LEARNING STASH
 from selenium import webdriver
 from time import sleep, strftime
 import pause
