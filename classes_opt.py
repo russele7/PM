@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime as dt
 from datetime import timedelta
+import re
 
 from itertools import chain
 from dateutil.relativedelta import relativedelta
@@ -145,51 +146,144 @@ class sport_page:
                         columns = ['GAME_DT', 'OBSDT', 'HT', 'GT', 'COUNTRY', 'TOURNAMENT', 'HW_COEF', 'DR_COEF', 'GW_COEF'])
 
 # In[ ]:
+class live_page:
+    def __init__(self, COUNTRY, TOURNAMENT):
+        self.COUNTRY = COUNTRY
+        self.TOURNAMENT = TOURNAMENT
+        self.MONTH_DICT = {"янв": 1,  "фев": 2,  "мар": 3, 
+                          "апр": 4,  "май": 5,  "июн": 6, 
+                          "июл": 7,  "авг": 8,  "сен": 9, 
+                          "окт": 10, "ноя": 11, "дек": 12}
+        
+    def game_data_extraction(one_game_data, OBSDT, COUNTRY, TOURNAMENT):
+        try:
+            GAME_LIVE_TIME = one_game_data[0]['div'][1]['div'][0]['span'][0]['_value']
+        except:
+            GAME_LIVE_TIME = one_game_data[0]['div'][1]['div'][2]['span'][0]['_value'] 
+
+        try:
+#             print('GTIM TRY')
+            GTIM =  int(re.findall('тайм \d+', GAME_LIVE_TIME)[0][5:])
+        except:
+            GTIM = GAME_LIVE_TIME
+        TAYM =  GAME_LIVE_TIME[:1]
+        COUNTRY = COUNTRY
+        TOURNAMENT = TOURNAMENT
+
+        HT = one_game_data[0]['div'][0]['div'][1]['span'][0]['_value']
+        GT = one_game_data[0]['div'][2]['div'][1]['span'][0]['_value']
+        
+        try:
+            SCORE_DATA = one_game_data[0]['div'][1]['div'][0]['div'][0]['span']
+        except:
+            SCORE_DATA = one_game_data[0]['div'][1]['div'][1]['div'][0]['span']
+        
+        SC1 = int(SCORE_DATA[0]['_value'])
+        SC2 = int(SCORE_DATA[2]['_value'])
+        SCORE = str(SC1) + ':' + str(SC2)
+        try:
+            HW_COEF = float(one_game_data[1]['div'][0]['div'][0]['div'][0]['div'][1]['div'][0]['span'][0]['_value'])
+            DR_COEF = float(one_game_data[1]['div'][0]['div'][0]['div'][1]['div'][1]['div'][0]['span'][0]['_value'])
+            GW_COEF = float(one_game_data[1]['div'][0]['div'][0]['div'][2]['div'][1]['div'][0]['span'][0]['_value'])
+        except:
+            DR_COEF, HW_COEF, GW_COEF  = np.nan, np.nan, np.nan
+
+        return [OBSDT, GAME_LIVE_TIME, GTIM, TAYM, COUNTRY, TOURNAMENT, 
+               HT, GT, SC1, SC2, SCORE, HW_COEF, DR_COEF, GW_COEF]
+
+    def live_data_extraction(live_data, OBSDT, COUNTRY, TOURNAMENT):
+        df = pd.DataFrame(columns = ['OBSDT', 'GAME_LIVE_TIME', 'GTIM', 'TAYM', 'COUNTRY', 'TOURNAMENT', 
+               'HT', 'GT', 'SC1','SC2', 'SCORE', 'HW_COEF', 'DR_COEF', 'GW_COEF'])    
+        i = 0    
+        for game_data in [elem['a'][0]['div'] for elem in live_data]:
+            df.loc[i] = live_page.game_data_extraction(game_data, OBSDT = OBSDT, COUNTRY = COUNTRY, TOURNAMENT = TOURNAMENT)
+            try:               
+                df.loc[i] = live_page.game_data_extraction(game_data, OBSDT = OBSDT, COUNTRY = COUNTRY, TOURNAMENT = TOURNAMENT)
+                i += 1
+            except:
+                print(f'ERROR on i = {i}, country = {COUNTRY}')
+                
+        for col in ['GTIM', 'TAYM', 'SC1', 'SC2']:
+            try:
+                df[col] = df[col].astype(int)   
+#                 print(f'TRY {COUNTRY} / column = {col}')
+            except:
+                pass 
+        return df
+    
+    def download_webpage(self, URL):
+        self.OBSDT = dt.today().replace(microsecond = 0) #  ВРЕМЯ ИЗМЕРЕНИЯ
+        driver = webdriver.Chrome()
+        driver.get(URL)
+        sleep(10)
+        content = driver.page_source
+        driver.close()
+        
+        self.content_json = html_to_json.convert(content)  
+        self.games = self.content_json['html'][0]['body'][0]['div'][0]['div'][1]['div'][0]['div'][2]['div'][1]['div'][1]['div']                      
+        self.df_games = live_page.live_data_extraction(
+            self.games, self.OBSDT, self.COUNTRY, self.TOURNAMENT)
+
+# In[ ]:
 
 data_list = \
         {'england': ['ПРЕМЬЕР-ЛИГА',      
                      'https://www.parimatch.ru/ru/football/premier-league-7f5506e872d14928adf0613efa509494/prematch',
-                     'https://terrikon.com/football/england/championship/matches'],
+                     'https://terrikon.com/football/england/championship/matches',
+                    'https://www.parimatch.ru/ru/football/championship-eeb107510b84417f833551f3b6e2351c/live'], 
         'germany':  ['БУНДЕСЛИГА',        
                      'https://www.parimatch.ru/ru/football/bundesliga-966112317e2c4ee28d5a36df840662d6/prematch',
-                     'https://terrikon.com/football/germany/championship/matches'],
+                     'https://terrikon.com/football/germany/championship/matches',
+                    'https://www.parimatch.ru/ru/football/bundesliga-966112317e2c4ee28d5a36df840662d6/live'],
         'spain': ['ЛА ЛИГА', 
                    'https://www.parimatch.ru/ru/football/laliga-d84ce93378454b0fa61d58b2696a950b/prematch',
-                   'https://terrikon.com/football/spain/championship/matches'],
+                   'https://terrikon.com/football/spain/championship/matches',
+                 'https://www.parimatch.ru/ru/football/laliga-d84ce93378454b0fa61d58b2696a950b/live'],
         'italy': ['СЕРИЯ А',
                    'https://www.parimatch.ru/ru/football/serie-a-6d80f3f3fa35431b80d50f516e4ce075/prematch',
-                   'https://terrikon.com/football/italy/championship/matches'], 
+                   'https://terrikon.com/football/italy/championship/matches',
+                 'https://www.parimatch.ru/ru/football/serie-a-6d80f3f3fa35431b80d50f516e4ce075/live'], 
         'france': ['ЛИГА 1',
                     'https://www.parimatch.ru/ru/football/ligue-1-254e4ecf1eb84a73b37b9cedffac646d/prematch',
-                    'https://terrikon.com/football/france/championship/matches'], 
+                    'https://terrikon.com/football/france/championship/matches',
+                  'https://www.parimatch.ru/ru/football/ligue-1-254e4ecf1eb84a73b37b9cedffac646d/live'], 
         'belgium': ['ПЕРВЫЙ ДИВИЗИОН А', 
                      'https://www.parimatch.ru/ru/football/first-division-a-e5bdb73049d54f40a61723262068f462/prematch',
-                     'https://terrikon.com/football/belgium/championship/matches'],
+                     'https://terrikon.com/football/belgium/championship/matches',
+                   'https://www.parimatch.ru/ru/football/first-division-a-e5bdb73049d54f40a61723262068f462/live'],
         'netherlands': 
                     ['ERIDIVISIE',
                       'https://www.parimatch.ru/ru/football/eredivisie-00bf4eb20b8d4ad8b43b46fa5dda5be1/prematch',
-                      'https://terrikon.com/football/netherlands/championship/matches'],
+                      'https://terrikon.com/football/netherlands/championship/matches',
+                    'https://www.parimatch.ru/ru/football/eredivisie-00bf4eb20b8d4ad8b43b46fa5dda5be1/live'],
         'portugal': ['ПРИМЕЙРА-ЛИГА',
                       'https://www.parimatch.ru/ru/football/primeira-liga-c2fc983af0c643be85e60663d28585ce/prematch',
-                      'https://terrikon.com/football/portugal/championship/matches'], 
+                      'https://terrikon.com/football/portugal/championship/matches',
+                    'https://www.parimatch.ru/ru/football/primeira-liga-c2fc983af0c643be85e60663d28585ce/live'], 
         'turkey': ['СУПЕРЛИГА',
                     'https://www.parimatch.ru/ru/football/super-league-5af164b314434cd4a4e8a30b0724eeab/prematch',
-                    'https://terrikon.com/football/turkey/championship/matches'],
+                    'https://terrikon.com/football/turkey/championship/matches',
+                  'https://www.parimatch.ru/ru/football/super-league-5af164b314434cd4a4e8a30b0724eeab/live'],
         'czech': ['ПЕРВАЯ ЛИГА',
                    'https://www.parimatch.ru/ru/football/1-liga-7c390835c0624753ba812b92215af16c/prematch',
-                   'https://terrikon.com/football/czech/championship/matches'],
+                   'https://terrikon.com/football/czech/championship/matches',
+                 'https://www.parimatch.ru/ru/football/1-liga-7c390835c0624753ba812b92215af16c/live'],
          'poland': ['EKSTRAKLASA', 
                    'https://www.parimatch.ru/ru/football/ekstraklasa-c930c57556f4413d8805cb9ae8d4d5a1/prematch',
-                   'https://terrikon.com/football/poland/championship/matches'],                   
+                   'https://terrikon.com/football/poland/championship/matches',
+                   'https://www.parimatch.ru/ru/football/ekstraklasa-c930c57556f4413d8805cb9ae8d4d5a1/live'],                   
         'greece': ['СУПЕРЛИГА 1',
                     'https://www.parimatch.ru/ru/football/super-league-1-abcb0f035b2b4d5b90ee2dd481487c98/prematch',
-                    'https://terrikon.com/football/greece/championship/matches'],
+                    'https://terrikon.com/football/greece/championship/matches',
+                  'https://www.parimatch.ru/ru/football/super-league-1-abcb0f035b2b4d5b90ee2dd481487c98/live'],
         'scotland': ['ПРЕМЬЕРШИП',
                     'https://www.parimatch.ru/ru/football/premiership-10bed6b95e4e4d63a272f05aeab0980d/prematch',
-                    'https://terrikon.com/football/scotland/championship/matches'],
+                    'https://terrikon.com/football/scotland/championship/matches',
+                    'https://www.parimatch.ru/ru/football/premiership-10bed6b95e4e4d63a272f05aeab0980d/live'],
         'swiss': ['СУПЕРЛИГА',
                     'https://www.parimatch.ru/ru/football/super-league-b9ca937509c1440aaaacb4fd7c593b80/prematch',
-                    'https://terrikon.com/football/swiss/championship/matches']
+                    'https://terrikon.com/football/swiss/championship/matches',
+                 'https://www.parimatch.ru/ru/football/super-league-b9ca937509c1440aaaacb4fd7c593b80/live']
                    }
 
 res_names_dict = {
@@ -262,6 +356,17 @@ lag_list = \
     ['1H',  relativedelta(hours = 1)   ]
 #     ['2H',  relativedelta(hours = 2)   ],
 #     ['3H',  relativedelta(hours = 3)   ]
+    ]
+
+lag_live_list = \
+    [
+    ['3M',    relativedelta(minutes = 3)],
+    # ['15M',   relativedelta(minutes = 15)],
+    ['30M',   relativedelta(minutes = 30)],
+    # ['TIMEOUT', relativedelta(hours = 1) ],
+    ['60M',    relativedelta(minutes = 60 + 18)],
+    # ['75M',   relativedelta(minutes = 75 + 18)],
+    # ['90M',   relativedelta(minutes = 90 + 18)]
     ]
 
 
