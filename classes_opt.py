@@ -125,6 +125,15 @@ class sport_page:
             except:
                 print(f'ERROR in get_games_list on step {i}')    
         return ll
+
+    def cleaning_games(raw_game_list):
+        clean_game_list = []
+        for elem in raw_game_list:
+            try:
+                clean_game_list.append(elem['a'][0]['div'])
+            except:
+                pass
+        return clean_game_list
     
     def download_webpage(self, URL):
         self.OBSDT = dt.today().replace(microsecond = 0) #  ВРЕМЯ ИЗМЕРЕНИЯ
@@ -133,17 +142,25 @@ class sport_page:
         sleep(10)
         content = driver.page_source
         driver.close()
-        self.content_json = html_to_json.convert(content)        
-        self.web_data = self.content_json['html'][0]['body'][0]['div'][0]['div'][1]['div'][0]['div'][2]['div'][1]['div']
-        self.n_sets = len(self.web_data)
-        self.sets_list = [self.web_data[i]['div'] for i in range(1, self.n_sets)]
+        self.content_json = html_to_json.convert(content) 
+
+        try:       
+            self.web_data = self.content_json['html'][0]['body'][0]['div'][0]['div'][1]['div'][0]['div'][2]['div'][1]['div']
+            self.n_sets = len(self.web_data)
+            self.sets_list = [self.web_data[i]['div'] for i in range(1, self.n_sets)]
+            
+            self.games_row_array = [[elem[j]['a'][0]['div']  for  j in range(len(elem))]  for elem in self.sets_list]
+            self.games_row_array = list(chain.from_iterable(self.games_row_array))      
+        except:
+            self.web_data = self.content_json['html'][0]['body'][0]        
+            self.one_set_data = self.web_data['div'][0]['div'][1]['div'][0]['div'][1]['div'][2]['div'][0]['div'][0]['div']        
+            self.games_row_array = sport_page.cleaning_games(self.one_set_data)
+
         
-        self.games_row_array = [[elem[j]['a'][0]['div']  for  j in range(len(elem))]  for elem in self.sets_list]
-        self.games_row_array = list(chain.from_iterable(self.games_row_array))
-    
         self.df_games = pd.DataFrame(sport_page.get_games_list(self.games_row_array, self.OBSDT, 
-                                                               self.COUNTRY, self.TOURNAMENT, self.MONTH_DICT), 
-                        columns = ['GAME_DT', 'OBSDT', 'HT', 'GT', 'COUNTRY', 'TOURNAMENT', 'HW_COEF', 'DR_COEF', 'GW_COEF'])
+                                                                self.COUNTRY, self.TOURNAMENT, self.MONTH_DICT), 
+                            columns = ['GAME_DT', 'OBSDT', 'HT', 'GT', 'COUNTRY', 'TOURNAMENT', 'HW_COEF', 'DR_COEF', 'GW_COEF'])
+
 
 # In[ ]:
 class live_page:
