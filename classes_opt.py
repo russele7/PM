@@ -174,9 +174,12 @@ class live_page:
         
     def game_data_extraction(one_game_data, OBSDT, COUNTRY, TOURNAMENT):
         try:
-            GAME_LIVE_TIME = one_game_data[0]['div'][1]['div'][0]['span'][0]['_value']
-        except:
-            GAME_LIVE_TIME = one_game_data[0]['div'][1]['div'][2]['span'][0]['_value'] 
+            GAME_LIVE_TIME = one_game[0]['div'][1]['div'][0]['span'][0]['_value']
+        except:    
+            try:
+                GAME_LIVE_TIME = one_game[0]['div'][1]['div'][1]['span'][0]['_value']
+            except:
+                GAME_LIVE_TIME = one_game[0]['div'][1]['div'][2]['span'][0]['_value']
 
         try:
 #             print('GTIM TRY')
@@ -211,12 +214,13 @@ class live_page:
     def live_data_extraction(live_data, OBSDT, COUNTRY, TOURNAMENT):
         df = pd.DataFrame(columns = ['OBSDT', 'GAME_LIVE_TIME', 'GTIM', 'TAYM', 'COUNTRY', 'TOURNAMENT', 
                'HT', 'GT', 'SC1','SC2', 'SCORE', 'HW_COEF', 'DR_COEF', 'GW_COEF'])    
-        i = 0    
-        for game_data in [elem['a'][0]['div'] for elem in live_data]:
-            df.loc[i] = live_page.game_data_extraction(game_data, OBSDT = OBSDT, COUNTRY = COUNTRY, TOURNAMENT = TOURNAMENT)
-            try:               
+        
+        i = 0
+        for j in range(len(live_data)):
+            try:
+                game_data = live_data[j]['a'][0]['div']                
                 df.loc[i] = live_page.game_data_extraction(game_data, OBSDT = OBSDT, COUNTRY = COUNTRY, TOURNAMENT = TOURNAMENT)
-                i += 1
+                i += 1          
             except:
                 print(f'ERROR on i = {i}, country = {COUNTRY}')
                 
@@ -237,7 +241,12 @@ class live_page:
         driver.close()
         
         self.content_json = html_to_json.convert(content)  
-        self.games = self.content_json['html'][0]['body'][0]['div'][0]['div'][1]['div'][0]['div'][2]['div'][1]['div'][1]['div']                      
+        
+        try:
+            self.games = self.content_json['html'][0]['body'][0]['div'][0]['div'][1]['div'][0]['div'][2]['div'][1]['div'][1]['div']                      
+        except:
+            self.games = self.content_json['html'][0]['body'][0]['div'][0]['div'][1]['div'][0]['div'][1]['div'][2]['div'][0]['div'][0]['div']
+                              
         self.df_games = live_page.live_data_extraction(
             self.games, self.OBSDT, self.COUNTRY, self.TOURNAMENT)
 
