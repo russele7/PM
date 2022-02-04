@@ -360,7 +360,8 @@ lag_list = \
 
 lag_live_list = \
     [
-    ['3M',    relativedelta(minutes = 3)],
+    ['2M',    relativedelta(minutes = 2)],
+    ['5M',    relativedelta(minutes = 5)],
     # ['15M',   relativedelta(minutes = 15)],
     ['30M',   relativedelta(minutes = 30)],
     # ['TIMEOUT', relativedelta(hours = 1) ],
